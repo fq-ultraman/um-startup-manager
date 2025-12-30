@@ -69,6 +69,25 @@ fn get_minimize_behavior(item_id: String) -> String {
 }
 
 #[tauri::command]
+fn reset_settings() -> Result<(), String> {
+    settings::reset_settings()
+}
+
+#[tauri::command]
+fn reload_app(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        // 获取当前URL并重新导航，强制刷新页面
+        if let Ok(current_url) = window.url() {
+            window.navigate(current_url).map_err(|e| e.to_string())?;
+        } else {
+            // 如果获取URL失败，使用reload方法
+            window.reload().map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
 fn start_process_monitor() {
     monitor::start_monitor();
 }
@@ -309,7 +328,9 @@ pub fn run() {
             set_process_name_mapping,
             get_process_name_mappings,
             set_minimize_behavior,
-            get_minimize_behavior
+            get_minimize_behavior,
+            reset_settings,
+            reload_app
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

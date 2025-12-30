@@ -119,3 +119,19 @@ pub fn set_minimize_behavior(item_id: &str, behavior: &str) -> Result<(), String
 pub fn get_minimize_behavior(item_id: &str) -> String {
     get_settings().minimize_behaviors.get(item_id).cloned().unwrap_or_else(|| "minimize".to_string())
 }
+
+pub fn reset_settings() -> Result<(), String> {
+    let settings_path = get_settings_path();
+    if let Some(parent_dir) = settings_path.parent() {
+        if parent_dir.exists() {
+            fs::remove_dir_all(parent_dir)
+                .map_err(|e| e.to_string())?;
+        }
+    }
+    
+    // 重置全局SETTINGS变量
+    let mut guard = SETTINGS.lock().unwrap();
+    *guard = AppSettings::default();
+    
+    Ok(())
+}
