@@ -1,0 +1,53 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 盾牌背景 -->
+  <defs>
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4FC3F7" />
+      <stop offset="100%" stop-color="#673AB7" />
+    </linearGradient>
+    <linearGradient id="gearGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9C27B0" />
+      <stop offset="100%" stop-color="#673AB7" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M50 10L20 20V70L50 85L80 70V20L50 10Z"
+    fill="url(#shieldGradient)"
+    stroke="#9C27B0"
+    stroke-width="2"
+  />
+  <!-- 外部圆环 -->
+  <circle cx="50" cy="50" r="25" stroke="white" stroke-width="2" fill="none" />
+  <!-- 圆环上的点 -->
+  <circle cx="50" cy="25" r="2" fill="white" />
+  <circle cx="75" cy="50" r="2" fill="white" />
+  <circle cx="50" cy="75" r="2" fill="white" />
+  <circle cx="25" cy="50" r="2" fill="white" />
+  <!-- 齿轮 -->
+  <g transform="translate(50, 50) scale(0.4)">
+    <circle cx="0" cy="0" r="25" fill="url(#gearGradient)" />
+    <!-- 齿轮齿 -->
+    <rect x="-10" y="-45" width="20" height="20" fill="white" rx="2" />
+    <rect x="-10" y="25" width="20" height="20" fill="white" rx="2" />
+    <rect x="25" y="-10" width="20" height="20" fill="white" rx="2" />
+    <rect x="-45" y="-10" width="20" height="20" fill="white" rx="2" />
+    <!-- 对角线齿轮齿 -->
+    <g transform="rotate(45)">
+      <rect x="-10" y="-45" width="20" height="20" fill="white" rx="2" />
+      <rect x="-10" y="25" width="20" height="20" fill="white" rx="2" />
+      <rect x="25" y="-10" width="20" height="20" fill="white" rx="2" />
+      <rect x="-45" y="-10" width="20" height="20" fill="white" rx="2" />
+    </g>
+  </g>
+  <!-- 向上箭头 -->
+  <path
+    d="M50 35L65 55H35L50 35Z"
+    fill="white"
+  />
+  <path
+    d="M50 55V80"
+    stroke="white"
+    stroke-width="4"
+    stroke-linecap="round"
+  />
+</svg>

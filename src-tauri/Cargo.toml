@@ -1,9 +1,10 @@
 [package]
-name = "tauri2-noframe"
+name = "UMStartupManager"
 version = "0.1.0"
-description = "Tauri 2.0 无边框窗口应用"
-authors = ["you"]
+description = "UM Startup Manager是一个现代化的启动项管理工具，用于管理Windows系统的启动程序。"
+authors = ["UM"]
 edition = "2021"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,15 +12,33 @@ edition = "2021"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "tauri2_noframe_lib"
+name = "um_startup_manager_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+# Windows startup item scanning
+winreg = "0.52"
+base64 = "0.22"
+image = "0.25"
+lazy_static = "1.4"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = [
+    "Win32_UI_Shell",
+    "Win32_Graphics_Gdi",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Com",
+    "Win32_Foundation",
+    "Win32_System_Threading",
+    "Win32_System_ProcessStatus",
+    "Win32_Storage_FileSystem"
+] }

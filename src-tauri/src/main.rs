@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    tauri2_noframe_lib::run()
+    um_startup_manager_lib::run()
 }

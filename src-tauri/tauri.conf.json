@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tauri2-noframe",
+  "productName": "UM启动项管理",
   "version": "0.1.0",
-  "identifier": "com.administrator.tauri2-noframe",
+  "identifier": "com.fq-ultraman.UMStartupManager",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "tauri2-noframe",
+        "title": "UM Startup Manager",
         "width": 800,
         "height": 600,
         "decorations": false,
@@ -28,13 +28,22 @@
   },
   "bundle": {
     "active": true,
+    "shortDescription": "UM Startup Manager",
+    "longDescription": "UM Startup Manager是一个现代化的启动项管理工具，用于管理Windows系统的启动程序。",
+    "copyright": "Copyright (c) 2025 fq-ultraman",
+    "publisher": "fq-ultraman",
     "targets": "all",
     "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
       "icons/128x128@2x.png",
-      "icons/icon.icns",
+      "icons/128x128.png",
+      "icons/64x64.png",
+      "icons/32x32.png",
       "icons/icon.ico"
-    ]
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      }
+    }
   }
 }
