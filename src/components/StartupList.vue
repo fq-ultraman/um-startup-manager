@@ -10,6 +10,8 @@ const error = ref<string | null>(null);
 const searchQuery = ref("");
 const autoMinimizeSettings = ref<Set<string>>(new Set());
 const processNameMappings = ref<Record<string, string>>({});
+const minimizeBehaviors = ref<Record<string, string>>({});
+const minimizeDelays = ref<Record<string, number>>({});
 const minimizeExecTimes = ref<Record<string, number>>({});
 const autoStartEnabled = ref(false);
 const autoStartPriority = ref(false);
@@ -83,6 +85,12 @@ const loadAutoMinimizeSettings = async () => {
       "get_process_name_mappings"
     );
     processNameMappings.value = mappings;
+    const behaviors = await invoke<Record<string, string>>(
+      "get_minimize_behaviors"
+    );
+    minimizeBehaviors.value = behaviors;
+    const delays = await invoke<Record<string, number>>("get_minimize_delays");
+    minimizeDelays.value = delays;
   } catch (e) {
     console.error("Failed to load auto-minimize settings:", e);
   }
@@ -162,6 +170,14 @@ const isAutoMinimize = (itemId: string) => {
 
 const getProcessNameMapping = (itemId: string) => {
   return processNameMappings.value[itemId] || null;
+};
+
+const getMinimizeBehavior = (itemId: string) => {
+  return minimizeBehaviors.value[itemId] || null;
+};
+
+const getMinimizeDelay = (itemId: string) => {
+  return minimizeDelays.value[itemId] || 0;
 };
 
 const getMinimizeExecTime = (itemId: string) => {
@@ -282,7 +298,7 @@ onUnmounted(() => {
     <!-- Header -->
     <div class="list-header">
       <div class="header-left">
-        <label class="auto-start-toggle">
+        <div class="auto-start-toggle">
           <span class="auto-start-label">开机启动到托盘</span>
           <button
             class="toggle-btn-mini"
@@ -294,11 +310,8 @@ onUnmounted(() => {
               <span class="toggle-thumb-mini"></span>
             </span>
           </button>
-        </label>
-        <label
-          v-if="autoStartEnabled"
-          class="auto-start-toggle priority-toggle"
-        >
+        </div>
+        <div v-if="autoStartEnabled" class="auto-start-toggle priority-toggle">
           <span class="auto-start-label">优先启动</span>
           <button
             class="toggle-btn-mini"
@@ -311,8 +324,8 @@ onUnmounted(() => {
               <span class="toggle-thumb-mini"></span>
             </span>
           </button>
-        </label>
-        <label v-if="autoStartEnabled" class="auto-start-toggle">
+        </div>
+        <div v-if="autoStartEnabled" class="auto-start-toggle">
           <span class="auto-start-label">最小化任务完成后退出</span>
           <button
             class="toggle-btn-mini"
@@ -323,7 +336,7 @@ onUnmounted(() => {
               <span class="toggle-thumb-mini"></span>
             </span>
           </button>
-        </label>
+        </div>
       </div>
       <div class="header-right">
         <div class="header-divider"></div>
@@ -447,6 +460,8 @@ onUnmounted(() => {
           :item="item"
           :auto-minimize="isAutoMinimize(item.id)"
           :process-name-mapping="getProcessNameMapping(item.id)"
+          :minimize-behavior="getMinimizeBehavior(item.id)"
+          :minimize-delay="getMinimizeDelay(item.id)"
           :minimize-exec-time="getMinimizeExecTime(item.id)"
           @toggle="handleToggle"
           @delete="handleDelete"
@@ -566,7 +581,6 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  cursor: pointer;
 }
 
 .auto-start-label {

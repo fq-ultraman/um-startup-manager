@@ -79,6 +79,16 @@ fn get_minimize_delay(item_id: String) -> u32 {
 }
 
 #[tauri::command]
+fn get_minimize_behaviors() -> std::collections::HashMap<String, String> {
+    settings::get_settings().minimize_behaviors
+}
+
+#[tauri::command]
+fn get_minimize_delays() -> std::collections::HashMap<String, u32> {
+    settings::get_settings().minimize_delays
+}
+
+#[tauri::command]
 fn get_auto_exit_enabled() -> bool {
     settings::is_auto_exit_enabled()
 }
@@ -369,6 +379,8 @@ pub fn run() {
             get_minimize_behavior,
             set_minimize_delay,
             get_minimize_delay,
+            get_minimize_behaviors,
+            get_minimize_delays,
             get_auto_exit_enabled,
             set_auto_exit_enabled,
             reset_settings,

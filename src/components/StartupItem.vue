@@ -7,8 +7,14 @@ const props = defineProps<{
   item: StartupItem;
   autoMinimize: boolean;
   processNameMapping: string | null;
+  minimizeBehavior: string | null;
+  minimizeDelay: number;
   minimizeExecTime: number;
 }>();
+
+const hasCustomSettings = computed(() => {
+  return props.processNameMapping || props.minimizeBehavior || props.minimizeDelay > 0;
+});
 
 const emit = defineEmits<{
   toggle: [item: StartupItem, enabled: boolean];
@@ -216,7 +222,7 @@ const handlePathClick = async () => {
               v-if="autoMinimize"
               class="process-name-btn"
               @click="openProcessNameModal"
-              :class="{ configured: processNameMapping }"
+              :class="{ configured: hasCustomSettings }"
               title="设置实际进程名"
             >
               <svg
