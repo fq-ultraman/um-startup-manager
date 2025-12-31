@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use std::path::Path;
 
 #[cfg(windows)]
@@ -19,12 +19,16 @@ use windows::Win32::UI::WindowsAndMessaging::{
     PostMessageW, WM_CLOSE,
 };
 
-use super::settings::{is_auto_minimize_enabled, mark_as_minimized, was_minimized_this_session, get_process_name_mapping, get_minimize_behavior};
+use super::settings::{is_auto_minimize_enabled, mark_as_minimized, was_minimized_this_session, get_process_name_mapping, get_minimize_behavior, get_minimize_delay, is_auto_exit_enabled, record_minimize_time};
 
 lazy_static::lazy_static! {
     static ref MONITOR_RUNNING: AtomicBool = AtomicBool::new(false);
+    /// Whether the application was started via autostart
+    static ref IS_AUTOSTART: AtomicBool = AtomicBool::new(false);
     /// Maps item_id to process_name (lowercase, without .exe)
     static ref MONITORED_ITEMS: Mutex<HashMap<String, String>> = Mutex::new(HashMap::new());
+    /// Maps process_name to (item_id, delay_end_time)
+    static ref DELAYED_TASKS: Mutex<HashMap<String, (String, Instant)>> = Mutex::new(HashMap::new());
 }
 
 /// Extract process name from executable path
@@ -44,8 +48,8 @@ pub fn add_monitored_item(item_id: &str, exe_path: &str) {
     }
 }
 
-/// Get all process names that need to be monitored with their item_ids
-fn get_processes_to_monitor() -> Vec<(String, String)> {
+/// Get all process names that need to be monitored with their item_ids and delay times
+fn get_processes_to_monitor() -> Vec<(String, String, u32)> {
     let guard = MONITORED_ITEMS.lock().unwrap();
     guard
         .iter()
@@ -53,7 +57,8 @@ fn get_processes_to_monitor() -> Vec<(String, String)> {
         .map(|(item_id, default_process_name)| {
             // Use custom mapping if available, otherwise use default
             let process_name = get_process_name_mapping(item_id).unwrap_or_else(|| default_process_name.clone());
-            (process_name, item_id.clone())
+            let delay = get_minimize_delay(item_id);
+            (process_name, item_id.clone(), delay)
         })
         .collect()
 }
@@ -105,7 +110,7 @@ unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> B
 }
 
 #[cfg(windows)]
-fn find_and_minimize_windows(target_processes: &[(String, String)]) -> Vec<String> {
+fn find_and_minimize_windows(target_processes: &[(String, String)]) -> Vec<(String, String)> {
     let mut minimized = Vec::new();
 
     unsafe {
@@ -131,9 +136,8 @@ fn find_and_minimize_windows(target_processes: &[(String, String)]) -> Vec<Strin
                 } else {
                     let _ = ShowWindow(hwnd, SW_MINIMIZE);
                 }
-                if !minimized.contains(&process_name) {
-                    minimized.push(process_name);
-                }
+                // Add both process_name and item_id to the result
+                minimized.push((process_name, item_id));
             }
         }
     }
@@ -142,32 +146,142 @@ fn find_and_minimize_windows(target_processes: &[(String, String)]) -> Vec<Strin
 }
 
 #[cfg(not(windows))]
-fn find_and_minimize_windows(_target_processes: &[(String, String)]) -> Vec<String> {
+fn find_and_minimize_windows(_target_processes: &[(String, String)]) -> Vec<(String, String)> {
     Vec::new()
 }
 
+/// Process delayed tasks that have reached their delay end time
+fn process_delayed_tasks() {
+    let now = Instant::now();
+    let mut tasks_to_remove = Vec::new();
+    let mut tasks_to_process = Vec::new();
+    
+    // Check which delayed tasks have reached their end time
+    {
+        let mut guard = DELAYED_TASKS.lock().unwrap();
+        for (process_name, (item_id, delay_end)) in guard.iter() {
+            if now >= *delay_end {
+                tasks_to_remove.push(process_name.clone());
+                tasks_to_process.push((process_name.clone(), item_id.clone()));
+            }
+        }
+        
+        // Remove processed tasks from the map
+        for process_name in &tasks_to_remove {
+            guard.remove(process_name);
+        }
+    }
+    
+    // Process the tasks that have reached their end time
+    if !tasks_to_process.is_empty() {
+        let results = find_and_minimize_windows(&tasks_to_process);
+
+        // Mark processed processes as minimized and remove from monitoring
+        let mut monitor_guard = MONITORED_ITEMS.lock().unwrap();
+        for (process_name, item_id) in results {
+            mark_as_minimized(&process_name);
+            record_minimize_time(&item_id);
+            // Remove the item from the monitoring list
+            monitor_guard.remove(&item_id);
+        }
+    }
+}
+
+/// Get current monitor status
+pub fn get_monitor_status() -> (bool, usize) {
+    let running = MONITOR_RUNNING.load(Ordering::SeqCst);
+    
+    // Count only items that are actually enabled for auto-minimize
+    let monitored_count = {
+        let guard = MONITORED_ITEMS.lock().unwrap();
+        guard.iter()
+            .filter(|(item_id, _)| is_auto_minimize_enabled(item_id))
+            .count()
+    };
+    
+    (running, monitored_count)
+}
+
+/// Stop the background monitor thread
+pub fn stop_monitor() {
+    MONITOR_RUNNING.store(false, Ordering::SeqCst);
+}
+
 /// Start the background monitor thread
-pub fn start_monitor() {
+pub fn start_monitor(autostart: bool) {
     if MONITOR_RUNNING.swap(true, Ordering::SeqCst) {
         return; // Already running
     }
 
+    // Set the autostart flag
+    IS_AUTOSTART.store(autostart, Ordering::SeqCst);
+
     thread::spawn(|| {
         while MONITOR_RUNNING.load(Ordering::SeqCst) {
+            // Process any delayed tasks that have reached their end time
+            process_delayed_tasks();
+
             let processes = get_processes_to_monitor();
 
             if !processes.is_empty() {
-                // Filter out already minimized processes
-                let to_check: Vec<(String, String)> = processes
+                // Filter out already minimized processes and processes already in delayed tasks
+                let to_check: Vec<(String, String, u32)> = processes
                     .into_iter()
-                    .filter(|(p, _)| !was_minimized_this_session(p))
+                    .filter(|(p, _, _)| !was_minimized_this_session(p))
+                    .filter(|(p, _, _)| {
+                        let guard = DELAYED_TASKS.lock().unwrap();
+                        !guard.contains_key(p)
+                    })
                     .collect();
 
                 if !to_check.is_empty() {
-                    let minimized = find_and_minimize_windows(&to_check);
-                    for name in minimized {
-                        mark_as_minimized(&name);
+                    for (process_name, item_id, delay) in to_check {
+                        if delay > 0 {
+                            // Add to delayed tasks with end time
+                            let delay_end = Instant::now() + Duration::from_secs(delay as u64);
+                            DELAYED_TASKS.lock().unwrap().insert(process_name, (item_id, delay_end));
+                        } else {
+                            // Process immediately
+                            let results = find_and_minimize_windows(&[(process_name.clone(), item_id)]);
+
+                            // Mark processed processes as minimized and remove from monitoring
+                            let mut monitor_guard = MONITORED_ITEMS.lock().unwrap();
+                            for (process_name, item_id) in results {
+                                mark_as_minimized(&process_name);
+                                record_minimize_time(&item_id);
+                                // Remove the item from the monitoring list
+                                monitor_guard.remove(&item_id);
+                            }
+                        }
                     }
+                } else {
+                    // Check if all processes have been handled and auto-exit is enabled
+                    let has_delayed_tasks = {
+                        let guard = DELAYED_TASKS.lock().unwrap();
+                        !guard.is_empty()
+                    };
+
+                    if !has_delayed_tasks && is_auto_exit_enabled() && IS_AUTOSTART.load(Ordering::SeqCst) {
+                        // All tasks completed, auto-exit enabled, and running from autostart - exit the application
+                        std::process::exit(0);
+                    }
+
+                    // No more processes to monitor, stop the monitor thread
+                    if !has_delayed_tasks {
+                        MONITOR_RUNNING.store(false, Ordering::SeqCst);
+                        break;
+                    }
+                }
+            } else {
+                // No processes to monitor at all, stop the monitor thread
+                let has_delayed_tasks = {
+                    let guard = DELAYED_TASKS.lock().unwrap();
+                    !guard.is_empty()
+                };
+
+                if !has_delayed_tasks {
+                    MONITOR_RUNNING.store(false, Ordering::SeqCst);
+                    break;
                 }
             }
 

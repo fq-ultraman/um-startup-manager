@@ -7,6 +7,7 @@ const props = defineProps<{
   item: StartupItem;
   autoMinimize: boolean;
   processNameMapping: string | null;
+  minimizeExecTime: number;
 }>();
 
 const emit = defineEmits<{
@@ -22,6 +23,7 @@ const showDeleteConfirm = ref(false);
 const showProcessNameModal = ref(false);
 const customProcessName = ref(props.processNameMapping || "");
 const minimizeBehavior = ref("minimize");
+const minimizeDelay = ref(0);
 
 watch(
   () => props.processNameMapping,
@@ -36,8 +38,12 @@ const openProcessNameModal = async () => {
     minimizeBehavior.value = await invoke<string>("get_minimize_behavior", {
       itemId: props.item.id,
     });
+    minimizeDelay.value = await invoke<number>("get_minimize_delay", {
+      itemId: props.item.id,
+    });
   } catch (e) {
     minimizeBehavior.value = "minimize";
+    minimizeDelay.value = 0;
   }
   showProcessNameModal.value = true;
 };
@@ -50,8 +56,12 @@ const saveProcessName = async () => {
       itemId: props.item.id,
       behavior: minimizeBehavior.value,
     });
+    await invoke("set_minimize_delay", {
+      itemId: props.item.id,
+      delay: minimizeDelay.value > 0 ? minimizeDelay.value : null,
+    });
   } catch (e) {
-    console.error("Failed to save minimize behavior:", e);
+    console.error("Failed to save settings:", e);
   }
   showProcessNameModal.value = false;
 };
@@ -74,6 +84,18 @@ const registrySubType = computed(() => {
       : "user";
   }
   return "";
+});
+
+const formattedExecTime = computed(() => {
+  if (!props.minimizeExecTime) return null;
+  const date = new Date(props.minimizeExecTime);
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 });
 
 const handleToggle = () => {
@@ -211,6 +233,13 @@ const handlePathClick = async () => {
                 />
               </svg>
             </button>
+            <span
+              v-if="autoMinimize && formattedExecTime"
+              class="exec-time-text"
+              title="已执行最小化"
+            >
+              {{ formattedExecTime }}
+            </span>
           </div>
         </div>
       </div>
@@ -302,6 +331,20 @@ const handlePathClick = async () => {
                 v-model="customProcessName"
                 @keyup.enter="saveProcessName"
                 placeholder="进程名（不含.exe）"
+                class="process-name-input"
+              />
+            </div>
+            <div class="setting-group">
+              <div class="setting-label">延迟执行 (秒)</div>
+              <p class="modal-hint">
+                设置延迟时间，监控到进程后将等待指定秒数再执行操作。
+              </p>
+              <input
+                type="number"
+                v-model.number="minimizeDelay"
+                @keyup.enter="saveProcessName"
+                placeholder="0（立即执行）"
+                min="0"
                 class="process-name-input"
               />
             </div>
@@ -538,6 +581,12 @@ const handlePathClick = async () => {
 
 .process-name-btn.configured:hover {
   background: #e3f2fd;
+}
+
+.exec-time-text {
+  font-size: 11px;
+  color: #999;
+  margin-left: 8px;
 }
 
 .process-name-input {
@@ -934,5 +983,9 @@ const handlePathClick = async () => {
 }
 .dark .radio-text {
   color: #ccc;
+}
+
+.dark .exec-time-text {
+  color: #888;
 }
 </style>

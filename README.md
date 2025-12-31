@@ -93,19 +93,36 @@ um-startup-manager/
 │   │   ├── 📄 StartupList.vue      # 启动项列表
 │   │   └── 📄 StartupItem.vue      # 启动项项组件
 │   ├── 📁 assets/                  # 静态资源
+│   ├── 📁 types/                   # TypeScript 类型定义
+│   │   └── 📄 startup.ts           # 启动项类型定义
 │   ├── 📄 App.vue                  # 主应用组件
-│   └── 📄 main.ts                  # 应用入口
+│   ├── 📄 main.ts                  # 应用入口
+│   └── 📄 vite-env.d.ts            # Vite 环境类型
 ├── 📁 src-tauri/                    # Tauri 后端源码
+│   ├── 📁 capabilities/            # 权限配置
+│   ├── 📁 icons/                   # 应用图标
 │   ├── 📁 src/                     # Rust 源码
 │   │   ├── 📄 main.rs              # Rust 入口文件
 │   │   ├── 📄 lib.rs               # Tauri 命令定义
 │   │   └── 📁 startup/             # 启动项管理模块
+│   │       ├── 📄 mod.rs           # 模块入口
+│   │       ├── 📄 scanner.rs       # 启动项扫描
+│   │       ├── 📄 manager.rs       # 启动项管理
+│   │       ├── 📄 monitor.rs       # 进程监控
+│   │       ├── 📄 settings.rs      # 配置管理
+│   │       └── 📄 icon.rs          # 图标处理
+│   ├── 📄 build.rs                 # 构建脚本
 │   ├── 📄 Cargo.toml               # Rust 依赖配置
+│   ├── 📄 Cargo.lock               # Rust 依赖锁定
 │   └── 📄 tauri.conf.json          # Tauri 配置文件
 ├── 📄 index.html                    # HTML 模板
 ├── 📄 package.json                  # NPM 依赖配置
-├── 📄 vite.config.ts                # Vite 配置
-└── 📄 README.md                     # 项目文档
+├── 📄 package-lock.json            # NPM 依赖锁定
+├── 📄 tsconfig.json                # TypeScript 配置
+├── 📄 tsconfig.node.json           # Node TypeScript 配置
+├── 📄 vite.config.ts               # Vite 配置
+├── 📄 README.md                    # 项目文档
+└── 📄 process_monitor_analysis.md  # 进程监控分析文档
 ```
 
 ## ⚙️ 配置说明
@@ -186,11 +203,22 @@ window
 - 删除不需要的启动项
 - 添加新的启动项
 
+### 进程监控系统
+
+- **启动后自动操作**：配置特定启动项在运行后自动执行操作
+- **智能窗口识别**：通过进程名匹配找到目标窗口
+- **灵活的操作行为**：
+  - 最小化到任务栏
+  - 直接关闭窗口
+- **自定义进程映射**：支持自定义进程名映射，适应复杂场景
+- **会话管理**：避免同一进程在同一会话中被重复处理
+- **高效监控机制**：每秒检查一次，资源占用低
+
 ### 设置管理
 
 - 自动最小化设置
-- 启动后最小化行为
-- 进程名称映射
+- 启动后最小化行为配置
+- 进程名称映射管理
 - 重置配置功能 - 彻底删除所有配置项及其关联文件夹
 - 最小化到托盘 - 将应用隐藏到系统托盘
 

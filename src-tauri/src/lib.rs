@@ -69,8 +69,38 @@ fn get_minimize_behavior(item_id: String) -> String {
 }
 
 #[tauri::command]
+fn set_minimize_delay(item_id: String, delay: Option<u32>) -> Result<(), String> {
+    settings::set_minimize_delay(&item_id, delay)
+}
+
+#[tauri::command]
+fn get_minimize_delay(item_id: String) -> u32 {
+    settings::get_minimize_delay(&item_id)
+}
+
+#[tauri::command]
+fn get_auto_exit_enabled() -> bool {
+    settings::is_auto_exit_enabled()
+}
+
+#[tauri::command]
+fn set_auto_exit_enabled(enabled: bool) -> Result<(), String> {
+    settings::set_auto_exit_enabled(enabled)
+}
+
+#[tauri::command]
 fn reset_settings() -> Result<(), String> {
-    settings::reset_settings()
+    startup::settings::reset_settings()
+}
+
+#[tauri::command]
+fn get_monitor_status() -> (bool, usize) {
+    startup::monitor::get_monitor_status()
+}
+
+#[tauri::command]
+fn get_minimize_exec_times() -> std::collections::HashMap<String, u64> {
+    settings::get_all_minimize_times()
 }
 
 #[tauri::command]
@@ -88,8 +118,13 @@ fn reload_app(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn start_process_monitor() {
-    monitor::start_monitor();
+fn start_process_monitor(autostart: bool) {
+    monitor::start_monitor(autostart);
+}
+
+#[tauri::command]
+fn stop_process_monitor() {
+    monitor::stop_monitor();
 }
 
 const APP_NAME: &str = "UMStartupManager";
@@ -253,13 +288,15 @@ fn is_autostart() -> bool {
     std::env::args().any(|arg| arg == "--autostart")
 }
 
+#[tauri::command]
+fn is_autostart_mode() -> bool {
+    is_autostart()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // Load settings on startup
     settings::load_settings();
-
-    // Start process monitor
-    monitor::start_monitor();
 
     let autostart = is_autostart();
 
@@ -319,6 +356,7 @@ pub fn run() {
             get_auto_minimize_settings,
             set_auto_minimize,
             start_process_monitor,
+            stop_process_monitor,
             get_auto_start_enabled,
             get_auto_start_priority,
             set_auto_start_enabled,
@@ -329,8 +367,15 @@ pub fn run() {
             get_process_name_mappings,
             set_minimize_behavior,
             get_minimize_behavior,
+            set_minimize_delay,
+            get_minimize_delay,
+            get_auto_exit_enabled,
+            set_auto_exit_enabled,
             reset_settings,
-            reload_app
+            reload_app,
+            get_monitor_status,
+            get_minimize_exec_times,
+            is_autostart_mode
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

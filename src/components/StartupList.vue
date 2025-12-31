@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import type { StartupItem } from "../types/startup";
 import StartupItemComponent from "./StartupItem.vue";
@@ -10,9 +10,20 @@ const error = ref<string | null>(null);
 const searchQuery = ref("");
 const autoMinimizeSettings = ref<Set<string>>(new Set());
 const processNameMappings = ref<Record<string, string>>({});
+const minimizeExecTimes = ref<Record<string, number>>({});
 const autoStartEnabled = ref(false);
 const autoStartPriority = ref(false);
 const autoStartLoading = ref(false);
+const autoExitAfterMinimize = ref(false);
+
+// 监控状态
+const monitorStatus = ref({
+  running: false,
+  count: 0,
+});
+
+// 定时器引用
+let monitorStatusTimer: number | null = null;
 
 // 选项卡状态管理
 const selectedTab = ref("all");
@@ -77,12 +88,25 @@ const loadAutoMinimizeSettings = async () => {
   }
 };
 
+// Check if there are items that need monitoring and start/stop monitor accordingly
+const updateMonitorState = async () => {
+  const hasItemsToMonitor = autoMinimizeSettings.value.size > 0;
+  if (hasItemsToMonitor) {
+    // Check if running in autostart mode
+    const isAutostart = await invoke<boolean>("is_autostart_mode");
+    await invoke("start_process_monitor", { autostart: isAutostart });
+  }
+  // Monitor will auto-stop when no items need monitoring
+};
+
 const loadItems = async () => {
   loading.value = true;
   error.value = null;
   try {
     items.value = await invoke<StartupItem[]>("get_startup_items");
     await loadAutoMinimizeSettings();
+    // Start monitor if there are items to monitor
+    await updateMonitorState();
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);
   } finally {
@@ -125,6 +149,8 @@ const handleAutoMinimizeChange = async (
     }
     // Trigger reactivity
     autoMinimizeSettings.value = new Set(autoMinimizeSettings.value);
+    // Update monitor state based on new settings
+    await updateMonitorState();
   } catch (e) {
     alert(`设置失败: ${e instanceof Error ? e.message : String(e)}`);
   }
@@ -136,6 +162,10 @@ const isAutoMinimize = (itemId: string) => {
 
 const getProcessNameMapping = (itemId: string) => {
   return processNameMappings.value[itemId] || null;
+};
+
+const getMinimizeExecTime = (itemId: string) => {
+  return minimizeExecTimes.value[itemId] || 0;
 };
 
 const handleProcessNameMappingChange = async (
@@ -158,6 +188,9 @@ const loadAutoStartSetting = async () => {
   try {
     autoStartEnabled.value = await invoke<boolean>("get_auto_start_enabled");
     autoStartPriority.value = await invoke<boolean>("get_auto_start_priority");
+    autoExitAfterMinimize.value = await invoke<boolean>(
+      "get_auto_exit_enabled"
+    );
   } catch (e) {
     console.error("Failed to load auto-start setting:", e);
   }
@@ -197,9 +230,50 @@ const handleAutoStartPriorityChange = async () => {
   }
 };
 
+const handleAutoExitChange = async () => {
+  try {
+    const newValue = !autoExitAfterMinimize.value;
+    await invoke("set_auto_exit_enabled", { enabled: newValue });
+    autoExitAfterMinimize.value = newValue;
+  } catch (e) {
+    alert(`设置失败: ${e instanceof Error ? e.message : String(e)}`);
+  }
+};
+
+// 获取监控状态
+const fetchMonitorStatus = async () => {
+  try {
+    const [running, count] = await invoke<[boolean, number]>(
+      "get_monitor_status"
+    );
+    monitorStatus.value = { running, count };
+    // Also fetch minimize execution times
+    const times = await invoke<Record<string, number>>(
+      "get_minimize_exec_times"
+    );
+    minimizeExecTimes.value = times;
+  } catch (error) {
+    console.error("Failed to fetch monitor status:", error);
+  }
+};
+
 onMounted(() => {
   loadItems();
   loadAutoStartSetting();
+
+  // 初始化监控状态
+  fetchMonitorStatus();
+
+  // 设置定时器，每2秒更新一次监控状态
+  monitorStatusTimer = window.setInterval(fetchMonitorStatus, 2000);
+});
+
+onUnmounted(() => {
+  // 清除定时器
+  if (monitorStatusTimer) {
+    clearInterval(monitorStatusTimer);
+    monitorStatusTimer = null;
+  }
 });
 </script>
 
@@ -232,6 +306,18 @@ onMounted(() => {
             @click="handleAutoStartPriorityChange"
             :disabled="autoStartLoading"
             title="优先于其他启动项启动（需要管理员权限）"
+          >
+            <span class="toggle-track-mini">
+              <span class="toggle-thumb-mini"></span>
+            </span>
+          </button>
+        </label>
+        <label v-if="autoStartEnabled" class="auto-start-toggle">
+          <span class="auto-start-label">最小化任务完成后退出</span>
+          <button
+            class="toggle-btn-mini"
+            :class="{ enabled: autoExitAfterMinimize }"
+            @click="handleAutoExitChange"
           >
             <span class="toggle-track-mini">
               <span class="toggle-thumb-mini"></span>
@@ -299,15 +385,6 @@ onMounted(() => {
           {{ tab.label }}
         </div>
       </div>
-      <div class="tabs-right">
-        <div class="stats" v-if="!loading && !error">
-          <span class="stat-item total">{{ stats.total }} 个项目</span>
-          <span class="stat-divider">|</span>
-          <span class="stat-item enabled">{{ stats.enabled }} 个启用</span>
-          <span class="stat-divider">|</span>
-          <span class="stat-item disabled">{{ stats.disabled }} 个禁用</span>
-        </div>
-      </div>
     </div>
 
     <!-- Loading State -->
@@ -370,12 +447,39 @@ onMounted(() => {
           :item="item"
           :auto-minimize="isAutoMinimize(item.id)"
           :process-name-mapping="getProcessNameMapping(item.id)"
+          :minimize-exec-time="getMinimizeExecTime(item.id)"
           @toggle="handleToggle"
           @delete="handleDelete"
           @update:auto-minimize="handleAutoMinimizeChange"
           @update:process-name-mapping="handleProcessNameMappingChange"
         />
       </TransitionGroup>
+    </div>
+
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <div class="monitor-status">
+        <span
+          class="status-indicator"
+          :class="{ running: monitorStatus.running && monitorStatus.count > 0 }"
+        ></span>
+        <span class="status-text">
+          {{
+            monitorStatus.running && monitorStatus.count > 0
+              ? `正在监控 ${monitorStatus.count} 个进程`
+              : "未在监控进程"
+          }}
+        </span>
+      </div>
+      <div class="status-right">
+        <div class="stats" v-if="!loading && !error">
+          <span class="stat-item total">{{ stats.total }} 个项目</span>
+          <span class="stat-divider">|</span>
+          <span class="stat-item enabled">{{ stats.enabled }} 个启用</span>
+          <span class="stat-divider">|</span>
+          <span class="stat-item disabled">{{ stats.disabled }} 个禁用</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -448,26 +552,6 @@ onMounted(() => {
   flex-direction: row;
   gap: 16px;
   align-items: center;
-}
-
-.stats {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #888;
-}
-
-.stat-divider {
-  color: #ddd;
-}
-
-.stat-item.enabled {
-  color: #4caf50;
-}
-
-.stat-item.disabled {
-  color: #999;
 }
 
 .header-right {
@@ -907,5 +991,102 @@ onMounted(() => {
 
 .dark .toggle-track-mini {
   background: #555;
+}
+
+/* 状态栏样式 */
+.status-bar {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-top: 1px solid #e0e0e0;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.status-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.status-right .stats {
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-right .stat-item.enabled {
+  color: #4caf50;
+}
+
+.status-right .stat-item.disabled {
+  color: #999;
+}
+
+.status-right .stat-divider {
+  color: #ddd;
+}
+
+.monitor-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #999;
+  transition: background-color 0.3s ease;
+}
+
+.status-indicator.running {
+  background-color: #4caf50;
+}
+
+.status-text {
+  font-size: 12px;
+  color: #666;
+}
+
+/* 深色模式下的状态栏样式 */
+.dark .status-bar {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-top: 1px solid #444;
+}
+
+.dark .status-text {
+  color: #aaa;
+}
+
+.dark .status-right .stats {
+  color: #aaa;
+}
+
+.dark .status-right .stat-divider {
+  color: #444;
+}
+
+.dark .status-right .stat-item.enabled {
+  color: #66bb6a;
+}
+
+.dark .status-right .stat-item.disabled {
+  color: #777;
+}
+
+.dark .status-indicator {
+  background-color: #666;
+}
+
+.dark .status-indicator.running {
+  background-color: #66bb6a;
 }
 </style>
