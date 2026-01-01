@@ -322,7 +322,7 @@ npm run tauri dev
 npm run tauri build
 
 # 构建特定平台
-npm run tauri build --target x86_64-pc-windows-msvc
+npm run tauri build -- --target x86_64-pc-windows-msvc
 ```
 
 ### 发布检查清单
