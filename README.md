@@ -54,14 +54,11 @@
 
 ```bash
 https://visualstudio.microsoft.com/zh-hans/visual-cpp-build-tools/
-
 勾选 “Desktop development with C++”（必须）
-
 确保子组件中包含：
 MSVC v14x - VS 2022 C++ x64/x86 生成工具（对应版本）
 Windows 10/11 SDK（根据系统选择）
 C++ 生成工具核心功能
-
 ```
 
 ### 华为云镜像：
