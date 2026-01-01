@@ -3,6 +3,9 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import { ref, onMounted } from "vue";
 
+// 从全局变量获取应用版本号
+const appVersion = __APP_VERSION__;
+
 const appWindow = getCurrentWindow();
 
 function minimizeWindow() {
@@ -54,7 +57,7 @@ async function minimizeToTray() {
     showError(
       `最小化到托盘失败：${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
   }
   closeMenu();
@@ -87,7 +90,7 @@ const confirmReset = async () => {
     showSuccess("配置已成功重置，应用将重新加载。");
   } catch (error) {
     showError(
-      `重置配置失败：${error instanceof Error ? error.message : String(error)}`
+      `清除配置失败：${error instanceof Error ? error.message : String(error)}`,
     );
   }
 };
@@ -135,7 +138,7 @@ onMounted(() => {
       </div>
       <div class="titlebar-text">
         <span class="titlebar-title">UM启动项管理</span>
-        <span class="titlebar-version">v0.1.0</span>
+        <span class="titlebar-version">v{{ appVersion }}</span>
       </div>
     </div>
     <div class="titlebar-buttons">
@@ -200,7 +203,7 @@ onMounted(() => {
           <button class="menu-item" @click="minimizeToTray">
             最小化到托盘
           </button>
-          <button class="menu-item" @click="handleResetClick">重置配置</button>
+          <button class="menu-item" @click="handleResetClick">清除配置</button>
         </div>
       </div>
 
@@ -236,11 +239,11 @@ onMounted(() => {
     </div>
   </div>
 
-  <!-- 重置配置确认模态窗 -->
+  <!-- 清除配置确认模态窗 -->
   <Teleport to="body">
     <div v-if="showResetConfirm" class="modal-overlay" @click="cancelReset">
       <div class="modal-content" @click.stop>
-        <div class="modal-header">确认重置配置</div>
+        <div class="modal-header">确认清除配置</div>
         <div class="modal-body">
           确定要重置所有配置吗？此操作将删除所有已保存的设置，且无法恢复。
         </div>

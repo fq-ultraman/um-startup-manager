@@ -14,7 +14,7 @@
 - **无边框设计** - 现代化的无边框窗口体验
 - **自定义标题栏** - 支持拖拽、最小化、关闭等操作
 - **菜单按钮** - 提供额外功能入口
-- **下拉菜单** - 包含最小化到托盘和重置配置选项
+- **下拉菜单** - 包含最小化到托盘和清除配置选项
 - **屏幕居中** - 启动时自动居中显示
 - **深色模式** - 自动检测系统主题，完美适配
 - **响应式设计** - 适配不同屏幕尺寸
@@ -49,6 +49,60 @@
 - Node.js >= 18.0.0
 - Rust >= 1.57.0
 - Windows 10/11 (主要支持平台)
+
+### 适用于 C++ 的 Visual Studio 生成工具
+
+```bash
+https://visualstudio.microsoft.com/zh-hans/visual-cpp-build-tools/
+
+勾选 “Desktop development with C++”（必须）
+
+确保子组件中包含：
+MSVC v14x - VS 2022 C++ x64/x86 生成工具（对应版本）
+Windows 10/11 SDK（根据系统选择）
+C++ 生成工具核心功能
+
+```
+
+### 华为云镜像：
+
+```bash
+https://mirrors.huaweicloud.com/home
+```
+
+### NPM 加速
+
+```bash
+npm config set registry https://mirrors.huaweicloud.com/npm/
+```
+
+### Rust 安装加速
+
+- 设置环境变量：
+
+```bash
+RUSTUP_DIST_SERVER https://mirrors.huaweicloud.com/rustup/
+RUSTUP_UPDATE_ROOT https://mirrors.huaweicloud.com/rustup/rustup/
+```
+
+- 下载安装器安装：
+
+```bash
+https://mirrors.huaweicloud.com/rustup/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe
+```
+
+### Cargo 加速
+
+- 新建文件填入如下内容：C:/Users/用户名/.cargo/config.toml
+
+```bash
+[source.crates-io]
+registry = "https://github.com/rust-lang/crates.io-index"
+replace-with = 'aliyun'
+
+[source.aliyun]
+registry = "sparse+https://mirrors.aliyun.com/crates.io-index/"
+```
 
 ### 安装依赖
 
@@ -182,7 +236,7 @@ um-startup-manager/
 ```typescript
 // 自动检测系统主题
 const isDarkMode = ref(
-  window.matchMedia("(prefers-color-scheme: dark)").matches
+  window.matchMedia("(prefers-color-scheme: dark)").matches,
 );
 
 // 监听主题变化
@@ -219,7 +273,7 @@ window
 - 自动最小化设置
 - 启动后最小化行为配置
 - 进程名称映射管理
-- 重置配置功能 - 彻底删除所有配置项及其关联文件夹
+- 清除配置功能 - 彻底删除所有配置项及其关联文件夹
 - 最小化到托盘 - 将应用隐藏到系统托盘
 
 ### 用户界面
@@ -233,7 +287,6 @@ window
 ### 添加新功能
 
 1. **前端组件** (`src/components/`)
-
    - 创建新的 Vue 组件
    - 添加 TypeScript 类型定义
    - 实现响应式数据绑定
