@@ -294,6 +294,23 @@ fn open_file_location(path: String) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn open_config_folder() -> Result<(), String> {
+    let app_data = std::env::var("APPDATA").unwrap_or_else(|_| ".".to_string());
+    let config_path = std::path::PathBuf::from(app_data)
+        .join("UMStartupManager");
+
+    // Ensure the folder exists
+    std::fs::create_dir_all(&config_path).map_err(|e| e.to_string())?;
+
+    // Open the folder in explorer
+    std::process::Command::new("explorer")
+        .arg(config_path)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 fn is_autostart() -> bool {
     std::env::args().any(|arg| arg == "--autostart")
 }
@@ -373,6 +390,7 @@ pub fn run() {
             open_registry_location,
             open_startup_folder,
             open_file_location,
+            open_config_folder,
             set_process_name_mapping,
             get_process_name_mappings,
             set_minimize_behavior,

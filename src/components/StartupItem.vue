@@ -13,7 +13,11 @@ const props = defineProps<{
 }>();
 
 const hasCustomSettings = computed(() => {
-  return props.processNameMapping || props.minimizeBehavior || props.minimizeDelay > 0;
+  return (
+    props.processNameMapping ||
+    props.minimizeBehavior ||
+    props.minimizeDelay > 0
+  );
 });
 
 const emit = defineEmits<{
@@ -35,7 +39,7 @@ watch(
   () => props.processNameMapping,
   (val) => {
     customProcessName.value = val || "";
-  }
+  },
 );
 
 const openProcessNameModal = async () => {
@@ -504,9 +508,6 @@ const handlePathClick = async () => {
 
 .item-path:hover {
   color: #2196f3;
-}
-
-.item-auto-minimize {
 }
 
 .auto-minimize-label {

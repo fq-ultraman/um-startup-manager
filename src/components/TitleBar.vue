@@ -87,7 +87,7 @@ const confirmReset = async () => {
   showResetConfirm.value = false;
   try {
     await invoke("reset_settings");
-    showSuccess("配置已成功重置，应用将重新加载。");
+    showSuccess("配置已成功清除，应用将重新加载。");
   } catch (error) {
     showError(
       `清除配置失败：${error instanceof Error ? error.message : String(error)}`,
@@ -97,6 +97,16 @@ const confirmReset = async () => {
 
 const cancelReset = () => {
   showResetConfirm.value = false;
+};
+
+const openConfigFolder = async () => {
+  try {
+    await invoke("open_config_folder");
+  } catch (error) {
+    showError(
+      `打开配置文件夹失败：${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 };
 
 onMounted(() => {
@@ -245,11 +255,20 @@ onMounted(() => {
       <div class="modal-content" @click.stop>
         <div class="modal-header">确认清除配置</div>
         <div class="modal-body">
-          确定要重置所有配置吗？此操作将删除所有已保存的设置，且无法恢复。
+          确定要清除所有配置吗？此操作将删除所有已保存的设置，且无法恢复。
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="cancelReset">取消</button>
-          <button class="btn-confirm" @click="confirmReset">重置</button>
+          <a
+            href="javascript:void(0)"
+            class="text-link"
+            @click="openConfigFolder"
+          >
+            打开配置文件夹
+          </a>
+          <div class="modal-actions-right">
+            <button class="btn-cancel" @click="cancelReset">取消</button>
+            <button class="btn-confirm" @click="confirmReset">清除</button>
+          </div>
         </div>
       </div>
     </div>
@@ -266,6 +285,7 @@ onMounted(() => {
           {{ successMessage }}
         </div>
         <div class="modal-actions">
+          <div class="modal-actions-right"></div>
           <button class="btn-confirm" @click="handleSuccessClose">确定</button>
         </div>
       </div>
@@ -279,6 +299,7 @@ onMounted(() => {
           {{ errorMessage }}
         </div>
         <div class="modal-actions">
+          <div class="modal-actions-right"></div>
           <button class="btn-confirm" @click="handleErrorClose">确定</button>
         </div>
       </div>
@@ -535,12 +556,19 @@ onMounted(() => {
 
 .modal-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-actions-right {
+  display: flex;
   gap: 12px;
 }
 
 .btn-cancel,
-.btn-confirm {
+.btn-confirm,
+.btn-secondary {
   padding: 10px 20px;
   border-radius: 8px;
   font-size: 14px;
@@ -557,6 +585,15 @@ onMounted(() => {
 
 .btn-cancel:hover {
   background: #e0e0e0;
+}
+
+.btn-secondary {
+  background: #2196f3;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #1976d2;
 }
 
 .btn-confirm {
@@ -592,5 +629,35 @@ onMounted(() => {
 
 .dark .btn-cancel:hover {
   background: #555;
+}
+
+.dark .btn-secondary {
+  background: #42a5f5;
+  color: white;
+}
+
+.dark .btn-secondary:hover {
+  background: #1e88e5;
+}
+
+/* 文字链接样式 */
+.text-link {
+  color: #2196f3;
+  text-decoration: none;
+  font-size: 14px;
+  padding: 10px 0;
+  transition: color 0.2s ease;
+}
+
+.text-link:hover {
+  color: #1976d2;
+}
+
+.dark .text-link {
+  color: #42a5f5;
+}
+
+.dark .text-link:hover {
+  color: #1e88e5;
 }
 </style>
