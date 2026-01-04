@@ -1,7 +1,12 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import path from "path";
+
+// 在 ES 模块中获取 __dirname 的替代方法
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 读取 package.json 获取版本号
 const packageJsonPath = path.resolve(__dirname, "package.json");

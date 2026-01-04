@@ -6,6 +6,7 @@
 [![Rust](https://img.shields.io/badge/Rust-2021-orange)](https://www.rust-lang.org/)
 
 一个基于 Tauri 2.0 和 Vue 3 构建的现代化 Windows 启动项管理工具。
+支持任意软件启动后最小化，维持开机后桌面整洁。
 
 ## 🎯 核心功能
 
@@ -13,6 +14,12 @@
 - 启用/禁用启动项
 - 删除不需要的启动项
 - 自动最小化启动程序
+
+## 📸 截图展示
+
+| 主界面                                         | 启动项管理                                             | 设置界面                                         |
+| ---------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------ |
+| ![主界面](landing-page/public/Screenshot1.png) | ![自动最小号设置](landing-page/public/Screenshot2.png) | ![夜间模式](landing-page/public/Screenshot3.png) |
 
 ## 🛠️ 技术栈
 
@@ -31,56 +38,6 @@
 - Node.js >= 18.0.0
 - Rust >= 1.68
 - Windows 10/11 (主要支持平台)
-
-### 华为云镜像：
-
-```bash
-https://mirrors.huaweicloud.com/home
-```
-
-### NPM 加速
-
-```bash
-npm config set registry https://mirrors.huaweicloud.com/npm/
-```
-
-### Rust 安装加速
-
-- 设置环境变量：
-
-```bash
-RUSTUP_DIST_SERVER https://mirrors.huaweicloud.com/rustup/
-RUSTUP_UPDATE_ROOT https://mirrors.huaweicloud.com/rustup/rustup/
-```
-
-- 下载安装器安装：
-
-```bash
-https://mirrors.huaweicloud.com/rustup/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe
-```
-
-### Cargo 加速
-
-- 新建文件 C:/Users/用户名/.cargo/config.toml 填入如下内容：
-
-```bash
-[source.crates-io]
-registry = "https://github.com/rust-lang/crates.io-index"
-replace-with = 'aliyun'
-
-[source.aliyun]
-registry = "sparse+https://mirrors.aliyun.com/crates.io-index/"
-```
-
-### 适用于 C++ 的 Visual Studio 生成工具
-
-```bash
-1.下载：https://visualstudio.microsoft.com/zh-hans/visual-cpp-build-tools/
-2.运行并勾选：“Desktop development with C++”（必须）确保子组件中包含：
-  - MSVC v14x - VS 2022 C++ x64/x86 生成工具（对应版本）
-  - Windows 10/11 SDK（根据系统选择）
-  - C++ 生成工具核心功能
-```
 
 ### 安装依赖
 
@@ -112,19 +69,41 @@ npm run tauri dev
 npm run tauri build
 
 # 构建后的文件位于
-src-tauri/target/release/bundle/
+src-tauri/target/release/
 ```
 
 ## 📁 项目结构
 
 ```
 um-startup-manager/
+├── 📁 .vscode/                      # VSCode 配置
+│   └── 📄 extensions.json          # 推荐扩展配置
+├── 📁 landing-page/                 # 项目 landing page
+│   ├── 📁 .vscode/                 # VSCode 配置
+│   │   └── 📄 extensions.json      # 推荐扩展配置
+│   ├── 📁 public/                  # 静态资源
+│   │   ├── 📄 Screenshot1.png      # 截图1
+│   │   ├── 📄 Screenshot2.png      # 截图2
+│   │   ├── 📄 Screenshot3.png      # 截图3
+│   │   ├── 📄 app-icon.png         # 应用图标
+│   │   └── 📄 favicon.ico          # 网站图标
+│   ├── 📁 src/                     # Vue 源码
+│   │   ├── 📄 App.vue             # 主应用组件
+│   │   └── 📄 main.js             # 应用入口
+│   ├── 📄 .gitignore               # Git 忽略配置
+│   ├── 📄 README.md               # 项目文档
+│   ├── 📄 index.html              # HTML 模板
+│   ├── 📄 jsconfig.json           # JavaScript 配置
+│   ├── 📄 package-lock.json       # NPM 依赖锁定
+│   ├── 📄 package.json            # NPM 依赖配置
+│   └── 📄 vite.config.js          # Vite 配置
 ├── 📁 src/                          # Vue 前端源码
 │   ├── 📁 components/               # Vue 组件
 │   │   ├── 📄 TitleBar.vue         # 自定义标题栏
 │   │   ├── 📄 StartupList.vue      # 启动项列表
 │   │   └── 📄 StartupItem.vue      # 启动项项组件
 │   ├── 📁 assets/                  # 静态资源
+│   │   └── 📄 app-icon.png         # 应用图标
 │   ├── 📁 types/                   # TypeScript 类型定义
 │   │   └── 📄 startup.ts           # 启动项类型定义
 │   ├── 📄 App.vue                  # 主应用组件
@@ -132,7 +111,14 @@ um-startup-manager/
 │   └── 📄 vite-env.d.ts            # Vite 环境类型
 ├── 📁 src-tauri/                    # Tauri 后端源码
 │   ├── 📁 capabilities/            # 权限配置
+│   │   └── 📄 default.json         # 默认权限配置
 │   ├── 📁 icons/                   # 应用图标
+│   │   ├── 📄 128x128.png          # 128x128 图标
+│   │   ├── 📄 128x128@2x.png       # 256x256 图标
+│   │   ├── 📄 32x32.png            # 32x32 图标
+│   │   ├── 📄 64x64.png            # 64x64 图标
+│   │   ├── 📄 icon.ico             # 应用图标
+│   │   └── 📄 icon.png             # 应用图标
 │   ├── 📁 src/                     # Rust 源码
 │   │   ├── 📄 main.rs              # Rust 入口文件
 │   │   ├── 📄 lib.rs               # Tauri 命令定义
@@ -143,18 +129,20 @@ um-startup-manager/
 │   │       ├── 📄 monitor.rs       # 进程监控
 │   │       ├── 📄 settings.rs      # 配置管理
 │   │       └── 📄 icon.rs          # 图标处理
+│   ├── 📄 .gitignore               # Git 忽略配置
 │   ├── 📄 build.rs                 # 构建脚本
 │   ├── 📄 Cargo.toml               # Rust 依赖配置
 │   ├── 📄 Cargo.lock               # Rust 依赖锁定
 │   └── 📄 tauri.conf.json          # Tauri 配置文件
+├── 📄 .gitignore                    # Git 忽略配置
+├── 📄 CHANGELOG.md                 # 更新日志
+├── 📄 README.md                    # 项目文档
 ├── 📄 index.html                    # HTML 模板
-├── 📄 package.json                  # NPM 依赖配置
 ├── 📄 package-lock.json            # NPM 依赖锁定
+├── 📄 package.json                  # NPM 依赖配置
 ├── 📄 tsconfig.json                # TypeScript 配置
 ├── 📄 tsconfig.node.json           # Node TypeScript 配置
-├── 📄 vite.config.ts               # Vite 配置
-├── 📄 README.md                    # 项目文档
-└── 📄 process_monitor_analysis.md  # 进程监控分析文档
+└── 📄 vite.config.ts               # Vite 配置
 ```
 
 ## ⚙️ 配置说明
@@ -242,14 +230,6 @@ npm run tauri dev
 npm run tauri build
 ```
 
-### 发布检查清单
-
-- [ ] 更新版本号
-- [ ] 测试所有功能
-- [ ] 检查界面适配
-- [ ] 验证安全配置
-- [ ] 更新文档
-
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
@@ -272,10 +252,22 @@ npm run tauri build
 - [Vue Team](https://vuejs.org/) - 优雅的前端框架
 - [Rust Community](https://www.rust-lang.org/) - 系统级编程语言
 
-## 📞 支持
+## 🤝 支持开发
 
 如果您觉得这个项目有用，请给个 ⭐️ Star！
-
 如有问题或建议，请提交 [Issue](../../issues)。
+
+如果您觉得这个项目有帮助，也欢迎通过以下方式支持：
+
+<div style="display: flex; gap: 20px; align-items: center;">
+  <div style="text-align: center;">
+    <h3 style="margin-bottom: 10px;">微信支付</h3>
+    <img src="landing-page/public/wechat.png" alt="微信支付" style="max-width: 200px;">
+  </div>
+  <div style="text-align: center;">
+    <h3 style="margin-bottom: 10px;">支付宝</h3>
+    <img src="landing-page/public/alipay.png" alt="支付宝" style="max-width: 200px;">
+  </div>
+</div>
 
 ---
