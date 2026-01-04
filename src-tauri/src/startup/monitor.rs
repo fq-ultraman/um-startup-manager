@@ -5,6 +5,8 @@ use std::thread;
 use std::time::{Duration, Instant};
 use std::path::Path;
 
+use tauri::AppHandle;
+
 #[cfg(windows)]
 use windows::Win32::Foundation::{BOOL, HWND, LPARAM};
 #[cfg(windows)]
@@ -191,22 +193,6 @@ fn process_delayed_tasks() {
             monitor_guard.remove(&item_id);
         }
     }
-
-    // Check if all tasks have been handled and auto-exit is enabled
-    let has_delayed_tasks = {
-        let guard = DELAYED_TASKS.lock().unwrap();
-        !guard.is_empty()
-    };
-
-    let has_monitored_items = {
-        let guard = MONITORED_ITEMS.lock().unwrap();
-        !guard.is_empty()
-    };
-
-    if !has_delayed_tasks && !has_monitored_items && is_auto_exit_enabled() && IS_AUTOSTART.load(Ordering::SeqCst) {
-        // All tasks completed, auto-exit enabled, and running from autostart - exit the application
-        std::process::exit(0);
-    }
 }
 
 /// Get current monitor status
@@ -230,7 +216,7 @@ pub fn stop_monitor() {
 }
 
 /// Start the background monitor thread
-pub fn start_monitor(autostart: bool) {
+pub fn start_monitor(autostart: bool, app_handle: AppHandle) {
     if MONITOR_RUNNING.swap(true, Ordering::SeqCst) {
         return; // Already running
     }
@@ -238,7 +224,10 @@ pub fn start_monitor(autostart: bool) {
     // Set the autostart flag
     IS_AUTOSTART.store(autostart, Ordering::SeqCst);
 
-    thread::spawn(|| {
+    // Clone app_handle for the thread
+    let app_handle_clone = app_handle.clone();
+    
+    thread::spawn(move || {
         while MONITOR_RUNNING.load(Ordering::SeqCst) {
             // Process any delayed tasks that have reached their end time
             process_delayed_tasks();
@@ -285,7 +274,7 @@ pub fn start_monitor(autostart: bool) {
 
                     if !has_delayed_tasks && is_auto_exit_enabled() && IS_AUTOSTART.load(Ordering::SeqCst) {
                         // All tasks completed, auto-exit enabled, and running from autostart - exit the application
-                        std::process::exit(0);
+                        app_handle_clone.exit(0);
                     }
 
                     // No more processes to monitor, stop the monitor thread
@@ -302,6 +291,12 @@ pub fn start_monitor(autostart: bool) {
                 };
 
                 if !has_delayed_tasks {
+                    // Check if auto-exit is enabled before stopping, but only when running from autostart
+                    if is_auto_exit_enabled() && IS_AUTOSTART.load(Ordering::SeqCst) {
+                        // All tasks completed, auto-exit enabled, and running from autostart - exit the application
+                        app_handle_clone.exit(0);
+                    }
+                    
                     MONITOR_RUNNING.store(false, Ordering::SeqCst);
                     break;
                 }

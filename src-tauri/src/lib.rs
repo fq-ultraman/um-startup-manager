@@ -128,8 +128,8 @@ fn reload_app(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn start_process_monitor(autostart: bool) {
-    monitor::start_monitor(autostart);
+fn start_process_monitor(autostart: bool, app: tauri::AppHandle) {
+    monitor::start_monitor(autostart, app);
 }
 
 #[tauri::command]
@@ -386,10 +386,10 @@ pub fn run() {
                 })
                 .build(app)?;
 
-            // If autostart, hide window to tray
-            if autostart {
+            // If not autostart, show the window
+            if !autostart {
                 if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.hide();
+                    let _ = window.show();
                 }
             }
 
