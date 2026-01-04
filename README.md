@@ -211,25 +211,6 @@ window
 - **Rust**: 遵循 Rust 最佳实践
 - **CSS**: 使用 Tailwind CSS 样式
 
-### 调试
-
-```bash
-# 前端调试
-npm run dev
-
-# 后端调试
-npm run tauri dev
-```
-
-## 📦 构建和发布
-
-### 构建配置
-
-```bash
-# 构建
-npm run tauri build
-```
-
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
