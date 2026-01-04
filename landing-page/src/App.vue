@@ -76,7 +76,8 @@ onUnmounted(() => {
                 >预览</a
               >
               <a
-                href="#download"
+                href="https://cnb.cool/ultraman-open/um-startup-manager/-/releases"
+                target="_blank"
                 class="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-lg font-medium transition-colors cursor-pointer"
                 >下载</a
               >
@@ -118,7 +119,8 @@ onUnmounted(() => {
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="#download"
+              href="https://cnb.cool/ultraman-open/um-startup-manager/-/releases"
+              target="_blank"
               class="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors cursor-pointer"
             >
               <svg
@@ -146,6 +148,18 @@ onUnmounted(() => {
                 />
               </svg>
               GitHub 源码
+            </a>
+            <a
+              href="https://cnb.cool/ultraman-open/um-startup-manager"
+              target="_blank"
+              class="inline-flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors cursor-pointer border border-white/20"
+            >
+              <img
+                src="https://docs.cnb.cool/images/logo/svg/Symbol-Color.svg"
+                alt="CNB"
+                class="w-6 h-6"
+              />
+              CNB 源码
             </a>
           </div>
         </div>
