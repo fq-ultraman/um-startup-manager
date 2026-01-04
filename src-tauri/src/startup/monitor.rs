@@ -191,6 +191,22 @@ fn process_delayed_tasks() {
             monitor_guard.remove(&item_id);
         }
     }
+
+    // Check if all tasks have been handled and auto-exit is enabled
+    let has_delayed_tasks = {
+        let guard = DELAYED_TASKS.lock().unwrap();
+        !guard.is_empty()
+    };
+
+    let has_monitored_items = {
+        let guard = MONITORED_ITEMS.lock().unwrap();
+        !guard.is_empty()
+    };
+
+    if !has_delayed_tasks && !has_monitored_items && is_auto_exit_enabled() && IS_AUTOSTART.load(Ordering::SeqCst) {
+        // All tasks completed, auto-exit enabled, and running from autostart - exit the application
+        std::process::exit(0);
+    }
 }
 
 /// Get current monitor status
