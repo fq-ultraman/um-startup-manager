@@ -240,15 +240,8 @@ window
 
 如果您觉得这个项目有帮助，也欢迎通过以下方式支持：
 
-<div style="display: flex; gap: 20px; align-items: center;">
-  <div style="text-align: center;">
-    <h3 style="margin-bottom: 10px;">微信支付</h3>
-    <img src="landing-page/public/wechat.png" alt="微信支付" style="max-width: 200px;">
-  </div>
-  <div style="text-align: center;">
-    <h3 style="margin-bottom: 10px;">支付宝</h3>
-    <img src="landing-page/public/alipay.png" alt="支付宝" style="max-width: 200px;">
-  </div>
-</div>
+| 微信支付                                                              | 支付宝                                                              |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| <img src="landing-page/public/wechat.png" alt="微信支付" width="150"> | <img src="landing-page/public/alipay.png" alt="支付宝" width="150"> |
 
 ---
