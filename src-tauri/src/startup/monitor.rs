@@ -88,11 +88,17 @@ struct EnumWindowsData {
 
 #[cfg(windows)]
 unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> BOOL {
-    let data = &mut *(lparam.0 as *mut EnumWindowsData);
+    let data = unsafe {
+        &mut *(lparam.0 as *mut EnumWindowsData)
+    };
 
-    if IsWindowVisible(hwnd).as_bool() {
+    if unsafe {
+        IsWindowVisible(hwnd).as_bool()
+    } {
         let mut pid: u32 = 0;
-        GetWindowThreadProcessId(hwnd, Some(&mut pid));
+        unsafe {
+            GetWindowThreadProcessId(hwnd, Some(&mut pid));
+        }
 
         if pid != 0 {
             if let Some(process_name) = get_process_name(pid) {

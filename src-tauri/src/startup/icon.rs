@@ -70,8 +70,10 @@ pub fn extract_icon_base64(exe_path: &str) -> Option<String> {
 #[cfg(windows)]
 unsafe fn icon_to_base64_png(icon: windows::Win32::UI::WindowsAndMessaging::HICON) -> Option<String> {
     let mut icon_info = ICONINFO::default();
-    if GetIconInfo(icon, &mut icon_info).is_err() {
-        return None;
+    unsafe {
+        if GetIconInfo(icon, &mut icon_info).is_err() {
+            return None;
+        }
     }
 
     // Get actual bitmap size
@@ -82,14 +84,20 @@ unsafe fn icon_to_base64_png(icon: windows::Win32::UI::WindowsAndMessaging::HICO
         icon_info.hbmMask
     };
 
-    GetObjectW(bmp_handle, std::mem::size_of::<BITMAP>() as i32, Some(&mut bmp as *mut _ as *mut _));
+    unsafe {
+        GetObjectW(bmp_handle, std::mem::size_of::<BITMAP>() as i32, Some(&mut bmp as *mut _ as *mut _));
+    }
     let width = bmp.bmWidth as u32;
     let height = bmp.bmHeight.unsigned_abs();
 
-    let hdc = CreateCompatibleDC(None);
+    let hdc = unsafe {
+        CreateCompatibleDC(None)
+    };
     if hdc.is_invalid() {
-        if !icon_info.hbmColor.is_invalid() { let _ = DeleteObject(icon_info.hbmColor); }
-        if !icon_info.hbmMask.is_invalid() { let _ = DeleteObject(icon_info.hbmMask); }
+        unsafe {
+            if !icon_info.hbmColor.is_invalid() { let _ = DeleteObject(icon_info.hbmColor); }
+            if !icon_info.hbmMask.is_invalid() { let _ = DeleteObject(icon_info.hbmMask); }
+        }
         return None;
     }
 
@@ -109,21 +117,27 @@ unsafe fn icon_to_base64_png(icon: windows::Win32::UI::WindowsAndMessaging::HICO
     let mut pixels: Vec<u8> = vec![0u8; (width * height * 4) as usize];
 
     if !icon_info.hbmColor.is_invalid() {
-        GetDIBits(hdc, icon_info.hbmColor, 0, height, Some(pixels.as_mut_ptr() as *mut _), &mut bmp_info, DIB_RGB_COLORS);
+        unsafe {
+            GetDIBits(hdc, icon_info.hbmColor, 0, height, Some(pixels.as_mut_ptr() as *mut _), &mut bmp_info, DIB_RGB_COLORS);
+        }
     }
 
     let has_alpha = pixels.chunks_exact(4).any(|c| c[3] != 0);
     if !has_alpha && !icon_info.hbmMask.is_invalid() {
         let mut mask_pixels: Vec<u8> = vec![0u8; (width * height * 4) as usize];
-        GetDIBits(hdc, icon_info.hbmMask, 0, height, Some(mask_pixels.as_mut_ptr() as *mut _), &mut bmp_info, DIB_RGB_COLORS);
+        unsafe {
+            GetDIBits(hdc, icon_info.hbmMask, 0, height, Some(mask_pixels.as_mut_ptr() as *mut _), &mut bmp_info, DIB_RGB_COLORS);
+        }
         for (pixel, mask) in pixels.chunks_exact_mut(4).zip(mask_pixels.chunks_exact(4)) {
             pixel[3] = if mask[0] == 0 { 255 } else { 0 };
         }
     }
 
-    let _ = DeleteDC(hdc);
-    if !icon_info.hbmColor.is_invalid() { let _ = DeleteObject(icon_info.hbmColor); }
-    if !icon_info.hbmMask.is_invalid() { let _ = DeleteObject(icon_info.hbmMask); }
+    unsafe {
+        let _ = DeleteDC(hdc);
+        if !icon_info.hbmColor.is_invalid() { let _ = DeleteObject(icon_info.hbmColor); }
+        if !icon_info.hbmMask.is_invalid() { let _ = DeleteObject(icon_info.hbmMask); }
+    }
 
     // Convert BGRA to RGBA
     for chunk in pixels.chunks_exact_mut(4) {

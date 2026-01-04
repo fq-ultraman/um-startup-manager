@@ -27,23 +27,6 @@
     }
   },
   "bundle": {
-    "active": true,
-    "shortDescription": "UM Startup Manager",
-    "longDescription": "UM Startup Manager是一个现代化的启动项管理工具，用于管理Windows系统的启动程序。",
-    "copyright": "Copyright (c) 2025 fq-ultraman",
-    "publisher": "fq-ultraman",
-    "targets": "all",
-    "icon": [
-      "icons/128x128@2x.png",
-      "icons/128x128.png",
-      "icons/64x64.png",
-      "icons/32x32.png",
-      "icons/icon.ico"
-    ],
-    "windows": {
-      "webviewInstallMode": {
-        "type": "embedBootstrapper"
-      }
-    }
+    "active": false
   }
 }
