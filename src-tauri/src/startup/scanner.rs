@@ -125,7 +125,6 @@ struct RegistrySource {
     hkey: winreg::HKEY,
     path: &'static str,
     name: &'static str,
-    is_disabled: bool,
 }
 
 const REGISTRY_SOURCES: &[RegistrySource] = &[
@@ -133,38 +132,21 @@ const REGISTRY_SOURCES: &[RegistrySource] = &[
         hkey: HKEY_CURRENT_USER,
         path: r"Software\Microsoft\Windows\CurrentVersion\Run",
         name: "HKCU\\...\\Run",
-        is_disabled: false,
     },
     RegistrySource {
         hkey: HKEY_CURRENT_USER,
         path: r"Software\Microsoft\Windows\CurrentVersion\RunOnce",
         name: "HKCU\\...\\RunOnce",
-        is_disabled: false,
     },
     RegistrySource {
         hkey: HKEY_LOCAL_MACHINE,
         path: r"Software\Microsoft\Windows\CurrentVersion\Run",
         name: "HKLM\\...\\Run",
-        is_disabled: false,
     },
     RegistrySource {
         hkey: HKEY_LOCAL_MACHINE,
         path: r"Software\Microsoft\Windows\CurrentVersion\RunOnce",
         name: "HKLM\\...\\RunOnce",
-        is_disabled: false,
-    },
-    // Disabled items
-    RegistrySource {
-        hkey: HKEY_CURRENT_USER,
-        path: r"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run",
-        name: "HKCU\\...\\StartupApproved\\Run",
-        is_disabled: true,
-    },
-    RegistrySource {
-        hkey: HKEY_LOCAL_MACHINE,
-        path: r"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run",
-        name: "HKLM\\...\\StartupApproved\\Run",
-        is_disabled: true,
     },
 ];
 
@@ -215,7 +197,7 @@ fn is_item_disabled(hkey: winreg::HKEY, name: &str) -> bool {
 pub fn scan_registry_items() -> Vec<StartupItem> {
     let mut items = Vec::new();
 
-    for source in REGISTRY_SOURCES.iter().filter(|s| !s.is_disabled) {
+    for source in REGISTRY_SOURCES.iter() {
         let root = RegKey::predef(source.hkey);
 
         if let Ok(key) = root.open_subkey(source.path) {

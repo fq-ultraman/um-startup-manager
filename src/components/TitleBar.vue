@@ -587,14 +587,7 @@ onMounted(() => {
   background: #e0e0e0;
 }
 
-.btn-secondary {
-  background: #2196f3;
-  color: white;
-}
 
-.btn-secondary:hover {
-  background: #1976d2;
-}
 
 .btn-confirm {
   background: #e53935;

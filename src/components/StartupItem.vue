@@ -727,9 +727,7 @@ const handlePathClick = async () => {
   color: #333;
 }
 
-.checkbox-custom:hover {
-  border-color: #2196f3;
-}
+
 
 .item-actions {
   display: flex;

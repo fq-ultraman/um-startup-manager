@@ -130,7 +130,7 @@ const handleToggle = async (item: StartupItem, enabled: boolean) => {
       items.value[index] = { ...items.value[index], enabled };
     }
   } catch (e) {
-    alert(`操作失败: ${e instanceof Error ? e.message : String(e)}`);
+    console.error(`操作失败: ${e instanceof Error ? e.message : String(e)}`);
     await loadItems();
   }
 };
@@ -140,7 +140,7 @@ const handleDelete = async (item: StartupItem) => {
     await invoke("delete_startup_item", { item });
     items.value = items.value.filter((i) => i.id !== item.id);
   } catch (e) {
-    alert(`删除失败: ${e instanceof Error ? e.message : String(e)}`);
+    console.error(`删除失败: ${e instanceof Error ? e.message : String(e)}`);
   }
 };
 
@@ -160,7 +160,7 @@ const handleAutoMinimizeChange = async (
     // Update monitor state based on new settings
     await updateMonitorState();
   } catch (e) {
-    alert(`设置失败: ${e instanceof Error ? e.message : String(e)}`);
+    console.error(`设置失败: ${e instanceof Error ? e.message : String(e)}`);
   }
 };
 
@@ -196,7 +196,7 @@ const handleProcessNameMappingChange = async (
       delete processNameMappings.value[item.id];
     }
   } catch (e) {
-    alert(`设置失败: ${e instanceof Error ? e.message : String(e)}`);
+    console.error(`设置失败: ${e instanceof Error ? e.message : String(e)}`);
   }
 };
 
@@ -223,7 +223,7 @@ const handleAutoStartChange = async () => {
     });
     autoStartEnabled.value = newValue;
   } catch (e) {
-    alert(`设置失败: ${e instanceof Error ? e.message : String(e)}`);
+    console.error(`设置失败: ${e instanceof Error ? e.message : String(e)}`);
   } finally {
     autoStartLoading.value = false;
   }
@@ -240,7 +240,7 @@ const handleAutoStartPriorityChange = async () => {
     });
     autoStartPriority.value = newValue;
   } catch (e) {
-    alert(`设置失败: ${e instanceof Error ? e.message : String(e)}`);
+    console.error(`设置失败: ${e instanceof Error ? e.message : String(e)}`);
   } finally {
     autoStartLoading.value = false;
   }

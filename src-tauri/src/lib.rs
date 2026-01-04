@@ -10,11 +10,6 @@ use tauri::{
 };
 
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[tauri::command]
 fn get_startup_items() -> Vec<StartupItem> {
     let items = scanner::get_all_startup_items();
 
@@ -256,10 +251,25 @@ fn set_auto_start_enabled(enabled: bool, priority: bool) -> Result<(), String> {
 
 #[tauri::command]
 fn open_registry_location(path: String) -> Result<(), String> {
-    // Kill existing regedit process first
-    let _ = std::process::Command::new("taskkill")
+    // Kill existing regedit process first with hidden window
+    #[cfg(windows)]
+    let taskkill_result = {
+        use windows::Win32::System::Threading::CREATE_NO_WINDOW;
+        use std::os::windows::process::CommandExt;
+        
+        std::process::Command::new("taskkill")
+            .args(["/F", "/IM", "regedit.exe"])
+            // 设置隐藏窗口标志
+            .creation_flags(CREATE_NO_WINDOW.0)
+            .output()
+    };
+    
+    #[cfg(not(windows))]
+    let taskkill_result = std::process::Command::new("taskkill")
         .args(["/F", "/IM", "regedit.exe"])
         .output();
+    
+    let _ = taskkill_result;
 
     // Set the last key in registry so regedit opens to it
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
@@ -269,7 +279,7 @@ fn open_registry_location(path: String) -> Result<(), String> {
         .0;
     key.set_value("LastKey", &path).map_err(|e| e.to_string())?;
 
-    // Open regedit
+    // Open regedit - regedit是GUI程序，不需要隐藏窗口
     std::process::Command::new("regedit")
         .spawn()
         .map_err(|e| e.to_string())?;
@@ -396,7 +406,6 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            greet,
             get_startup_items,
             toggle_startup_item,
             delete_startup_item,
