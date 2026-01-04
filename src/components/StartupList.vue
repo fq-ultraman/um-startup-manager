@@ -31,8 +31,8 @@ let monitorStatusTimer: number | null = null;
 const selectedTab = ref("all");
 const tabs = [
   { id: "all", label: "全部" },
-  { id: "registry-system", label: "注册表（系统）" },
-  { id: "registry-user", label: "注册表（用户）" },
+  { id: "registry-system", main: "注册表", tag: "系统" },
+  { id: "registry-user", main: "注册表", tag: "用户" },
   { id: "folder", label: "启动文件夹" },
 ];
 
@@ -394,7 +394,13 @@ onUnmounted(() => {
           :class="{ active: selectedTab === tab.id }"
           @click="selectedTab = tab.id"
         >
-          {{ tab.label }}
+          <template v-if="tab.main && tab.tag">
+            <span class="tab-text">{{ tab.main }}</span>
+            <span class="tab-tag">{{ tab.tag }}</span>
+          </template>
+          <template v-else>
+            {{ tab.label }}
+          </template>
         </div>
       </div>
       <div class="tabs-right">
@@ -561,7 +567,7 @@ onUnmounted(() => {
 .tabs-container {
   display: flex;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 25px 0 20px;
   flex-shrink: 0;
   border-bottom: 1px solid #e0e0e0;
 }
@@ -569,22 +575,20 @@ onUnmounted(() => {
 .tabs-left {
   display: flex;
   gap: 8px;
-  align-items: center;
+  align-items: flex-end;
   flex-shrink: 0;
 }
 
 .tabs-right {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-end;
   height: 100%;
-  margin-left: auto;
-  gap: 5px;
-  padding-right: 5px;
+  transform: translateX(10px);
 }
 
 .tab-item {
-  padding: 4px 16px;
+  padding: 6px 16px;
   font-size: 13px;
   font-weight: 500;
   color: #666;
@@ -598,6 +602,10 @@ onUnmounted(() => {
   border-right: none;
   outline: none;
   font-family: inherit;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tab-item:hover {
@@ -616,7 +624,53 @@ onUnmounted(() => {
   stroke-linecap: round;
   stroke-linejoin: round;
   display: inline-block;
-  transform: translateY(-1px);
+  transform: translateY(1px);
+}
+
+.tab-text {
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.tab-tag {
+  font-size: 11px;
+  font-weight: 400;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background-color: #e0e0e0;
+  color: #666;
+  vertical-align: middle;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.tab-item:hover .tab-tag {
+  background-color: rgba(33, 150, 243, 0.2);
+  color: #2196f3;
+}
+
+.tab-item.active .tab-tag {
+  background-color: rgba(33, 150, 243, 0.3);
+  color: #2196f3;
+}
+
+/* Dark Mode */
+.dark .tab-tag {
+  background-color: #444;
+  color: #aaa;
+}
+
+.dark .tab-item:hover .tab-tag {
+  background-color: rgba(66, 165, 245, 0.3);
+  color: #42a5f5;
+}
+
+.dark .tab-item.active .tab-tag {
+  background-color: rgba(66, 165, 245, 0.4);
+  color: #42a5f5;
 }
 
 .tab-divider {

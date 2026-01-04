@@ -39,7 +39,7 @@ watch(
   () => props.processNameMapping,
   (val) => {
     customProcessName.value = val || "";
-  },
+  }
 );
 
 const openProcessNameModal = async () => {
@@ -79,12 +79,14 @@ const saveProcessName = async () => {
 const sourceTypeLabel = computed(() => {
   if (props.item.source_type === "registry") {
     // Check if it's HKLM (system) or HKCU (user)
-    if (props.item.source_location.includes("HKEY_LOCAL_MACHINE")) {
-      return "注册表（系统）";
-    }
-    return "注册表（用户）";
+    return {
+      main: "注册表",
+      tag: props.item.source_location.includes("HKEY_LOCAL_MACHINE")
+        ? "系统"
+        : "用户",
+    };
   }
-  return "启动文件夹";
+  return { main: "启动文件夹", tag: "" };
 });
 
 const registrySubType = computed(() => {
@@ -200,7 +202,13 @@ const handlePathClick = async () => {
                 : '点击打开启动文件夹'
             "
           >
-            {{ sourceTypeLabel }}
+            <template v-if="sourceTypeLabel.main && sourceTypeLabel.tag">
+              <span class="badge-text">{{ sourceTypeLabel.main }}</span>
+              <span class="badge-tag">{{ sourceTypeLabel.tag }}</span>
+            </template>
+            <template v-else>
+              {{ sourceTypeLabel.main }}
+            </template>
           </span>
         </div>
         <div
@@ -444,6 +452,27 @@ const handlePathClick = async () => {
   font-weight: 500;
   margin-left: 4px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge-text {
+  margin-right: 3px;
+}
+
+.badge-tag {
+  font-size: 10px;
+  font-weight: 400;
+  padding: 1px 4px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.5);
+  color: inherit;
+  vertical-align: middle;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
 }
 
@@ -908,6 +937,10 @@ const handlePathClick = async () => {
 .dark .item-source-badge.folder {
   background: #1b3d20;
   color: #a5d6a7;
+}
+
+.dark .badge-tag {
+  background-color: rgba(0, 0, 0, 0.3);
 }
 .dark .item-source-badge.folder:hover {
   background: #2a4d30;

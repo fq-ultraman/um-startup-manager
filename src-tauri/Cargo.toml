@@ -1,6 +1,6 @@
 [package]
 name = "UMStartupManager"
-version = "0.1.3"
+version = "0.1.4"
 description = "UM Startup Manager是一个现代化的启动项管理工具，用于管理Windows系统的启动程序。"
 authors = ["fq-ultraman"]
 edition = "2024"
