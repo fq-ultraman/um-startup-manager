@@ -311,6 +311,26 @@ fn open_config_folder() -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn open_services() -> Result<(), String> {
+    // Open Windows Services Manager using MMC
+    std::process::Command::new("mmc")
+        .arg("services.msc")
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+fn open_task_scheduler() -> Result<(), String> {
+    // Open Windows Task Scheduler using MMC
+    std::process::Command::new("mmc")
+        .arg("taskschd.msc")
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 fn is_autostart() -> bool {
     std::env::args().any(|arg| arg == "--autostart")
 }
@@ -391,6 +411,8 @@ pub fn run() {
             open_startup_folder,
             open_file_location,
             open_config_folder,
+            open_services,
+            open_task_scheduler,
             set_process_name_mapping,
             get_process_name_mappings,
             set_minimize_behavior,

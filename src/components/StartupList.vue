@@ -339,7 +339,6 @@ onUnmounted(() => {
         </div>
       </div>
       <div class="header-right">
-        <div class="header-divider"></div>
         <div class="search-box">
           <svg
             class="search-icon"
@@ -397,6 +396,48 @@ onUnmounted(() => {
         >
           {{ tab.label }}
         </div>
+      </div>
+      <div class="tabs-right">
+        <div class="tab-divider"></div>
+        <button
+          class="tab-item"
+          @click="invoke('open_services')"
+          title="管理系统服务"
+        >
+          <svg
+            class="tab-icon"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+            <line x1="6" y1="1" x2="6" y2="4" />
+            <line x1="10" y1="1" x2="10" y2="4" />
+            <line x1="14" y1="1" x2="14" y2="4" /></svg
+          >系统服务
+        </button>
+        <button
+          class="tab-item"
+          @click="invoke('open_task_scheduler')"
+          title="管理计划任务"
+        >
+          <svg
+            class="tab-icon"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" /></svg
+          >计划任务
+        </button>
       </div>
     </div>
 
@@ -537,12 +578,13 @@ onUnmounted(() => {
   align-items: center;
   justify-content: flex-end;
   height: 100%;
-  padding: 6px 0;
   margin-left: auto;
+  gap: 5px;
+  padding-right: 5px;
 }
 
 .tab-item {
-  padding: 6px 16px;
+  padding: 4px 16px;
   font-size: 13px;
   font-weight: 500;
   color: #666;
@@ -550,6 +592,12 @@ onUnmounted(() => {
   border-radius: 6px 6px 0 0;
   transition: all 0.2s ease;
   border-bottom: 2px solid transparent;
+  background: transparent;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  outline: none;
+  font-family: inherit;
 }
 
 .tab-item:hover {
@@ -560,6 +608,23 @@ onUnmounted(() => {
   color: #2196f3;
   border-bottom-color: #2196f3;
   background-color: rgba(33, 150, 243, 0.05);
+}
+
+.tab-icon {
+  margin-right: 2px;
+  vertical-align: middle;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: inline-block;
+  transform: translateY(-1px);
+}
+
+.tab-divider {
+  width: 1px;
+  height: 20px;
+  background: #e0e0e0;
+  margin: 0 8px;
+  align-self: center;
 }
 
 .header-left {
@@ -1000,6 +1065,10 @@ onUnmounted(() => {
 }
 
 .dark .header-divider {
+  background: #444;
+}
+
+.dark .tab-divider {
   background: #444;
 }
 
