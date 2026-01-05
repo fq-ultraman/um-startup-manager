@@ -57,7 +57,7 @@ async function minimizeToTray() {
     showError(
       `最小化到托盘失败：${
         error instanceof Error ? error.message : String(error)
-      }`,
+      }`
     );
   }
   closeMenu();
@@ -90,7 +90,7 @@ const confirmReset = async () => {
     showSuccess("配置已成功清除，应用将重新加载。");
   } catch (error) {
     showError(
-      `清除配置失败：${error instanceof Error ? error.message : String(error)}`,
+      `清除配置失败：${error instanceof Error ? error.message : String(error)}`
     );
   }
 };
@@ -104,7 +104,9 @@ const openConfigFolder = async () => {
     await invoke("open_config_folder");
   } catch (error) {
     showError(
-      `打开配置文件夹失败：${error instanceof Error ? error.message : String(error)}`,
+      `打开配置文件夹失败：${
+        error instanceof Error ? error.message : String(error)
+      }`
     );
   }
 };
@@ -586,8 +588,6 @@ onMounted(() => {
 .btn-cancel:hover {
   background: #e0e0e0;
 }
-
-
 
 .btn-confirm {
   background: #e53935;
