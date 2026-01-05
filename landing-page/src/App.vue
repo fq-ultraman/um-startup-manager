@@ -139,7 +139,8 @@ onUnmounted(() => {
               免费下载
             </a>
             <a
-              href="#"
+              href="https://github.com/fq-ultraman/um-startup-manager"
+              target="_blank"
               class="inline-flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors cursor-pointer border border-white/20"
             >
               <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
