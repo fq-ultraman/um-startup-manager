@@ -438,22 +438,12 @@ onUnmounted(() => {
           class="flex flex-col md:flex-row items-center justify-between gap-4"
         >
           <div class="flex items-center gap-3">
-            <div
-              class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center"
-            >
-              <svg
-                class="w-4 h-4 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                />
-              </svg>
+            <div class="w-8 h-8 flex items-center justify-center">
+              <img
+                src="/app-icon.png"
+                alt="UMStartupManager"
+                class="w-8 h-8 object-contain"
+              />
             </div>
             <span class="text-slate-400 text-sm">UMStartupManager</span>
           </div>

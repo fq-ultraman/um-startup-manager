@@ -3,7 +3,8 @@
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-blue)](https://tauri.app/)
 [![Vue](https://img.shields.io/badge/Vue-3.5-green)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)](https://www.typescriptlang.org/)
-[![Rust](https://img.shields.io/badge/Rust-2021-orange)](https://www.rust-lang.org/)
+[![Rust](https://img.shields.io/badge/Rust-2024-orange)](https://www.rust-lang.org/)
+[![官网](https://img.shields.io/badge/官网-blue)](https://um-startup-manager.fqurl.cn/)
 
 一个基于 Tauri 2.0 和 Vue 3 构建的现代化 Windows 启动项管理工具。
 支持任意软件启动后最小化，维持开机后桌面整洁。
@@ -28,7 +29,7 @@
 | **Tauri**      | 2.0  | 跨平台桌面应用框架 |
 | **Vue**        | 3.5  | 前端框架           |
 | **TypeScript** | 5.6  | 类型安全           |
-| **Rust**       | 2021 | 后端逻辑           |
+| **Rust**       | 2024 | 后端逻辑           |
 | **Vite**       | 6.0  | 构建工具           |
 
 ## 🚀 快速开始
